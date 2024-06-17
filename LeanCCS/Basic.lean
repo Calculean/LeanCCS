@@ -46,8 +46,8 @@ def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) : List 
     if s ∈ visited then
       reach_aux lts visited ss
     else
-      let new_states := List.concat (List.map (fun a => post lts s a) lts.states) in
-      reach_aux lts (s::visited) (new_states ++ ss)
+
+      reach_aux lts (s::visited) ((List.concat (List.map (fun a => post lts s a) lts.actions)) ++ ss)
 
 def reach (lts : LTS) (initial_states : List State) : List State :=
   reach_aux lts [] initial_states
