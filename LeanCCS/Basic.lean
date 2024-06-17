@@ -16,7 +16,7 @@ def transition (s : State) (a : Action) : List State :=
   | ("BURNING", "extinguish") => [State.mk "EXTINCT"]
   | _ => []
 
-def lts_example : LTS :=
+example : LTS :=
   LTS.mk
     [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]
     transition
