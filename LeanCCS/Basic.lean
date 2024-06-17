@@ -7,6 +7,7 @@ structure Action where
 
 structure LTS where
   states : List State
+  actions : List Action
   transition : State → Action → List State
   s0 : State
 
@@ -19,6 +20,8 @@ def transition (s : State) (a : Action) : List State :=
 example : LTS :=
   LTS.mk
     [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]
+
+    [Action.mk "strike",Action.mk "extinguish",]
     transition
     (State.mk "UNUSED")
 
@@ -81,8 +84,8 @@ def pre_star_aux (lts : LTS) (visited : List State) (to_visit : List State) : Li
     if s ∈ visited then
       pre_star_aux lts visited ss
     else
-      let new_states := List.concat (List.map (fun a => pre lts s a) lts.states) in
-      pre_star_aux lts (s::visited) (new_states ++ ss)
+
+      pre_star_aux lts (s::visited) ((List.concat (List.map (fun a => pre lts s a) lts.actions)) ++ ss)
 
 def pre_star (lts : LTS) (initial_states : List State) : List State :=
   pre_star_aux lts [] initial_states
