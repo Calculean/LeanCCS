@@ -17,6 +17,12 @@ def transition (s : State) (a : Action) : List State :=
   | ("BURNING", "extinguish") => [State.mk "EXTINCT"]
   | _ => []
 
+
+def concatLists (lists : List (List α)) : List α :=
+  lists.foldl (init := []) (fun acc lst => acc ++ lst)
+
+#eval concatLists [[1, 2, 3], [4, 5], [6, 7, 8, 9]]
+
 example : LTS :=
   LTS.mk
     [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]
@@ -42,16 +48,19 @@ def post_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat)
   | 0 => states
   | n' + 1 => post_S_A lts (post_S_n lts states actions n') actions
 
+
+def elem {α} [BEq α] (x : α) (xs : List α) : Bool :=
+  xs.any (fun y => x == y)
+
+
 def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) : List State :=
   match to_visit with
   | [] => visited
   | s::ss =>
-    if s ∈ visited then
+    if elem s visited then
       reach_aux lts visited ss
     else
-
-      reach_aux lts (s::visited) ((List.concat (List.map (fun a => post lts s a) lts.actions)) ++ ss)
-
+      reach_aux lts (s::visited) ((concatLists (List.map (fun a => post lts s a) lts.actions)) ++ ss)
 def reach (lts : LTS) (initial_states : List State) : List State :=
   reach_aux lts [] initial_states
 
@@ -81,11 +90,11 @@ def pre_star_aux (lts : LTS) (visited : List State) (to_visit : List State) : Li
   match to_visit with
   | [] => visited
   | s::ss =>
-    if s ∈ visited then
+    if elem s  visited then
       pre_star_aux lts visited ss
     else
 
-      pre_star_aux lts (s::visited) ((List.concat (List.map (fun a => pre lts s a) lts.actions)) ++ ss)
+      pre_star_aux lts (s::visited) ((concatLists (List.map (fun a => pre lts s a) lts.actions)) ++ ss)
 
 def pre_star (lts : LTS) (initial_states : List State) : List State :=
   pre_star_aux lts [] initial_states
