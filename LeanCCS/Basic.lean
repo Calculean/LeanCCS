@@ -53,16 +53,20 @@ def elem {α} [BEq α] (x : α) (xs : List α) : Bool :=
   xs.any (fun y => x == y)
 
 
-def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) : List State :=
+
+def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) (acc : List State): List State :=
   match to_visit with
-  | [] => visited
+  | [] => acc
   | s::ss =>
     if elem s visited then
-      reach_aux lts visited ss
+      reach_aux lts visited ss acc
     else
-      reach_aux lts (s::visited) ((concatLists (List.map (fun a => post lts s a) lts.actions)) ++ ss)
+      reach_aux lts (s::visited) (  (post_A lts s lts.actions)  ++ ss) ( (post_A lts s lts.actions) ++ acc )
+
+
+
 def reach (lts : LTS) (initial_states : List State) : List State :=
-  reach_aux lts [] initial_states
+  reach_aux lts [] initial_states []
 
 def reach_lts (lts : LTS) : List State :=
   reach lts [lts.s0]
