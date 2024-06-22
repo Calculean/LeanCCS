@@ -1,3 +1,5 @@
+import Batteries.Data.List.Basic
+
 structure State where
   val : String
 deriving BEq
@@ -52,13 +54,11 @@ def post_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat)
 def elem {α} [BEq α] (x : α) (xs : List α) : Bool :=
   xs.any (fun y => x == y)
 
-
-
 def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) (acc : List State): List State :=
   match to_visit with
   | [] => acc
   | s::ss =>
-    if elem s visited then
+    if visited.indexOf? s == none then
       reach_aux lts visited ss acc
     else
       reach_aux lts (s::visited) (  (post_A lts s lts.actions)  ++ ss) ( (post_A lts s lts.actions) ++ acc )
