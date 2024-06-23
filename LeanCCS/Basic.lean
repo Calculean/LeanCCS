@@ -19,11 +19,16 @@ instance : LawfulBEq State where
 structure Action where
   val : String
 
+
+
 structure LTS where
   states : List State
   actions : List Action
   transition : State → Action → List { s : State // s ∈ states }
   s0 : State
+
+def ValidState (lts : LTS) :=
+  { s : State // s ∈ lts.states }
 
 def post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   lts.transition s a
@@ -56,13 +61,13 @@ theorem List.not_mem_of_indexOf?_eq_none [BEq α] [LawfulBEq α] (l : List α) (
       rintro rfl
       exact h LawfulBEq.rfl
 
-def reach_aux {lts : LTS} (visited : { l : List State // l <+~ lts.states }) (to_visit : List { s : State // s ∈ lts.states })
-    (acc : List { s : State // s ∈ lts.states }): List { s : State // s ∈ lts.states } :=
+def reach_aux (lts : LTS) (visited : { l : List State // l <+~ lts.states } )
+(to_visit : List { s : State // s ∈ lts.states }) (acc : List State): List State :=
   match to_visit with
   | [] => acc
   | s::ss =>
     if h : visited.1.indexOf? s.1 != none then
-      reach_aux visited ss acc
+      reach_aux lts visited ss acc
     else
       have hx : (s.1 :: visited.1) <+~ lts.states := by
         refine List.cons_subperm_of_not_mem_of_mem ?_ s.2 visited.2
@@ -71,12 +76,12 @@ def reach_aux {lts : LTS} (visited : { l : List State // l <+~ lts.states }) (to
       have : lts.states.length - (visited.1.length + 1) < lts.states.length - visited.1.length := by
         refine Nat.sub_add_lt_sub ?_ Nat.zero_lt_one
         simpa using hx.length_le
-      reach_aux ⟨s::visited, hx⟩ ((post_A s lts.actions) ++ ss) ((post_A s lts.actions).map Subtype.val ++ acc)
+      reach_aux lts ⟨s::visited, hx⟩ (  (post_A  s lts.actions)  ++ ss) ( (post_A  s lts.actions).map Subtype.val ++ acc )
 termination_by (lts.states.length - visited.1.length, to_visit.length)
 
-def reach {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List { s : State // s ∈ lts.states } :=
-  reach_aux [] initial_states []
 
+def reach {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List State :=
+  reach_aux lts ⟨[], nil_subperm⟩ initial_states []
 /-
 def transition {lts : LTS} (h : lts.states = [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]) (s : State) (a : Action) : List { s : State // s ∈ lts.states } :=
   match (s.val, a.val) with
