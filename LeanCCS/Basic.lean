@@ -54,11 +54,11 @@ def post_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat)
 def elem {α} [BEq α] (x : α) (xs : List α) : Bool :=
   xs.any (fun y => x == y)
 
-def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) (acc : List State): List State :=
+partial def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) (acc : List State): List State :=
   match to_visit with
   | [] => acc
   | s::ss =>
-    if visited.indexOf? s == none then
+    if visited.indexOf? s != none then
       reach_aux lts visited ss acc
     else
       reach_aux lts (s::visited) (  (post_A lts s lts.actions)  ++ ss) ( (post_A lts s lts.actions) ++ acc )
@@ -90,15 +90,18 @@ def pre_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat) 
   | n' + 1 => pre_S_A lts (pre_S_n lts states actions n') actions
 
 
-def pre_star_aux (lts : LTS) (visited : List State) (to_visit : List State) : List State :=
+partial def pre_star_aux (lts : LTS) (visited : List State) (to_visit : List State) : List State :=
   match to_visit with
   | [] => visited
   | s::ss =>
     if elem s  visited then
       pre_star_aux lts visited ss
     else
-
       pre_star_aux lts (s::visited) ((concatLists (List.map (fun a => pre lts s a) lts.actions)) ++ ss)
 
 def pre_star (lts : LTS) (initial_states : List State) : List State :=
   pre_star_aux lts [] initial_states
+
+
+theorem reach_pre_star_equivalence (lts : LTS) (s s' : State) :
+  s' ∈ reach lts [s] ↔ s ∈ pre_star lts [s'] :=
