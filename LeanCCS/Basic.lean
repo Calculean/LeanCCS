@@ -12,6 +12,7 @@ deriving BEq
 theorem State.beq_iff {s t : State} : (s == t) ↔ s.val = t.val := by
   rw [show s == t ↔ s.val == t.val from Iff.rfl, beq_iff_eq]
 
+
 instance : LawfulBEq State where
   rfl := by simp [State.beq_iff]
   eq_of_beq h := State.ext _ _ (State.beq_iff.1 h)
@@ -32,6 +33,7 @@ def ValidState (lts : LTS) :=
 
 def post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   lts.transition s a
+
 
 def post_S {lts : LTS} (states : List { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   states.foldl (fun acc state => acc ++ post state a) []
@@ -82,6 +84,39 @@ termination_by (lts.states.length - visited.1.length, to_visit.length)
 
 def reach {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List State :=
   reach_aux lts ⟨[], nil_subperm⟩ initial_states []
+
+local instance instBEqSubtype {α : Type _} [BEq α] (P: α → Prop) : BEq (Subtype P) where
+  beq a b := a.val == b.val
+
+local instance instLawfulBEqSubtype {α :Type _} [BEq α] [i:LawfulBEq α] (P : α → Prop) :
+    LawfulBEq (Subtype P) where
+  eq_of_beq := by
+    intro a b
+    dsimp [BEq.beq]
+    intro h
+    ext
+    exact i.eq_of_beq h
+  rfl := by
+    intro a
+    dsimp [BEq.beq]
+    exact i.rfl
+
+
+def pre {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
+  List.filter (fun st => (lts.transition st a).indexOf? s != none  ) lts.states
+
+
+
+
+
+
+
+
+
+
+
+
+
 /-
 def transition {lts : LTS} (h : lts.states = [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]) (s : State) (a : Action) : List { s : State // s ∈ lts.states } :=
   match (s.val, a.val) with
