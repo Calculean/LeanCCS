@@ -10,7 +10,6 @@ deriving BEq
 theorem State.beq_iff {s t : State} : (s == t) ↔ s.val = t.val := by
   rw [show s == t ↔ s.val == t.val from Iff.rfl, beq_iff_eq]
 
-
 instance : LawfulBEq State where
   rfl := by simp [State.beq_iff]
   eq_of_beq h := State.ext _ _ (State.beq_iff.1 h)
@@ -26,7 +25,6 @@ structure LTS where
 
 def post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   lts.transition s a
-
 
 def post_S {lts : LTS} (states : List { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   states.foldl (fun acc state => acc ++ post state a) []
@@ -76,3 +74,14 @@ termination_by (lts.states.length - visited.1.length, to_visit.length)
 
 def reach {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List State :=
   reach_aux lts ⟨[], nil_subperm⟩ initial_states []
+
+local instance instBEqSubtype {α : Type _} [BEq α] (P: α → Prop) : BEq (Subtype P) where
+  beq a b := a.val == b.val
+
+local instance {lts : LTS} : BEq { s : State // s ∈ lts.states } := instBEqSubtype _
+
+def map_lts_statesList (lts : LTS) : List { s : State // s ∈ lts.states } :=
+  lts.states.filterMap fun s => if h : s ∈ lts.states then some ⟨s, h⟩ else none
+
+def pre {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
+  List.filter (fun st => (lts.transition st a).indexOf? s != none) <| map_lts_statesList lts
