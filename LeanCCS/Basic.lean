@@ -2,8 +2,6 @@ import Batteries.Data.List.Perm
 
 open List
 
-set_option autoImplicit true
-
 @[ext]
 structure State where
   val : String
@@ -19,16 +17,11 @@ instance : LawfulBEq State where
 structure Action where
   val : String
 
-
-
 structure LTS where
   states : List State
   actions : List Action
   transition : State → Action → List { s : State // s ∈ states }
   s0 : State
-
-def ValidState (lts : LTS) :=
-  { s : State // s ∈ lts.states }
 
 def post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   lts.transition s a
@@ -79,92 +72,16 @@ def reach_aux (lts : LTS) (visited : { l : List State // l <+~ lts.states } )
       reach_aux lts ⟨s::visited, hx⟩ (  (post_A  s lts.actions)  ++ ss) ( (post_A  s lts.actions).map Subtype.val ++ acc )
 termination_by (lts.states.length - visited.1.length, to_visit.length)
 
-
 def reach {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List State :=
   reach_aux lts ⟨[], nil_subperm⟩ initial_states []
-/-
-def transition {lts : LTS} (h : lts.states = [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]) (s : State) (a : Action) : List { s : State // s ∈ lts.states } :=
-  match (s.val, a.val) with
-  | ("UNUSED", "strike") => [State.mk "BURNING"]
-  | ("BURNING", "extinguish") => [State.mk "EXTINCT"]
-  | _ => []
 
-example : LTS :=
-  LTS.mk
-    [State.mk "UNUSED", State.mk "BURNING", State.mk "EXTINCT"]
+local instance instBEqSubtype {α : Type _} [BEq α] (P: α → Prop) : BEq (Subtype P) where
+  beq a b := a.val == b.val
 
-    [Action.mk "strike",Action.mk "extinguish",]
-    transition
-    (State.mk "UNUSED")
+local instance {lts : LTS} : BEq { s : State // s ∈ lts.states } := instBEqSubtype _
 
-def post (lts : LTS) (s : State) (a : Action) : List State :=
-  lts.transition s a
+def map_lts_statesList (lts : LTS) : List { s : State // s ∈ lts.states } :=
+  lts.states.filterMap fun s => if h : s ∈ lts.states then some ⟨s, h⟩ else none
 
-def post_S (lts : LTS) (states : List State) (a : Action) : List State :=
-  states.foldl (fun acc state => acc ++ post lts state a) []
-
-def post_A (lts : LTS) (s : State) (actions : List Action) : List State :=
-  actions.foldl (fun acc act => acc ++ post lts s act) []
-
-def post_S_A (lts : LTS) (states : List State) (actions : List Action) : List State :=
-  actions.foldl (fun acc act => acc ++ post_S lts states act) []
-
-def post_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat) : List State :=
-  match n with
-  | 0 => states
-  | n' + 1 => post_S_A lts (post_S_n lts states actions n') actions
-
-def elem {α} [BEq α] (x : α) (xs : List α) : Bool :=
-  xs.any (fun y => x == y)
-
-partial def reach_aux (lts : LTS) (visited : List State) (to_visit : List State) (acc : List State): List State :=
-  match to_visit with
-  | [] => acc
-  | s::ss =>
-    if visited.indexOf? s != none then
-      reach_aux lts visited ss acc
-    else
-      reach_aux lts (s::visited) (  (post_A lts s lts.actions)  ++ ss) ( (post_A lts s lts.actions) ++ acc )
-
-def reach (lts : LTS) (initial_states : List State) : List State :=
-  reach_aux lts [] initial_states []
-
-def reach_lts (lts : LTS) : List State :=
-  reach lts [lts.s0]
-
-def pre (lts : LTS) (s : State) (a : Action) : List State :=
-  List.filter (fun s' => (post lts s' a).any (fun s'' => s'' == s)) lts.states
-
-def pre_A (lts : LTS) (s : State) (actions : List Action) : List State :=
-  List.filter (fun s' => actions.all (fun a => (post lts s' a).any (fun s'' => s'' == s))) lts.states
-
-def pre_S_a (lts : LTS) (states : List State) (a : Action) : List State :=
-  states.foldl (fun acc state => acc ++ pre lts state a) []
-
-def pre_S_A (lts : LTS) (states : List State) (actions : List Action) : List State :=
-  actions.foldl (fun acc action => acc ++ pre_S_a lts states action) []
-
-
-def pre_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat) : List State :=
-  match n with
-  | 0 => states
-  | n' + 1 => pre_S_A lts (pre_S_n lts states actions n') actions
-
-
-partial def pre_star_aux (lts : LTS) (visited : List State) (to_visit : List State) : List State :=
-  match to_visit with
-  | [] => visited
-  | s::ss =>
-    if elem s  visited then
-      pre_star_aux lts visited ss
-    else
-      pre_star_aux lts (s::visited) ((concatLists (List.map (fun a => pre lts s a) lts.actions)) ++ ss)
-
-def pre_star (lts : LTS) (initial_states : List State) : List State :=
-  pre_star_aux lts [] initial_states
-
-
-theorem reach_pre_star_equivalence (lts : LTS) (s s' : State) :
-    s' ∈ reach lts [s] ↔ s ∈ pre_star lts [s'] :=
-  sorry
--/
+def pre {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
+  List.filter (fun st => (lts.transition st a).indexOf? s != none) <| map_lts_statesList lts
