@@ -46,10 +46,6 @@ We welcome contributions to this project. If you have suggestions or improvement
 - Include tests and proofs for any new formalizations.
 - Follow the existing code style and structure.
 
-## License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
 ## Acknowledgements
 
 This project is supported by the "Computer-assisted proofs in Lean" seminar at Saarland University, led by Prof. Laurent Bartholdi. Special thanks to the Concurrent Programming course instructors for their foundational teachings on CCS.
