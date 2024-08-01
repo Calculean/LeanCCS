@@ -106,7 +106,6 @@ def pre_S (lts : LTS) (states : List State) (a : Action) : List State :=
 def pre_S_A (lts : LTS) (states : List State) (actions : List Action) : List State :=
   actions.foldl (fun acc action => acc ++ pre_S lts states action) []
 
-
 def pre_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat) : List State :=
   match n with
   | 0 => states
