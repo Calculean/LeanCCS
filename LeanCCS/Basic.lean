@@ -111,3 +111,27 @@ def pre_S_n (lts : LTS) (states : List State) (actions : List Action) (n : Nat) 
   match n with
   | 0 => states
   | n' + 1 => pre_S_A lts (pre_S_n lts states actions n') actions
+
+
+def pre_aux (lts : LTS) (visited : { l : List State // l <+~ lts.states })
+(to_visit : List { s : State // s ∈ lts.states }) (acc : List State): List State :=
+  match to_visit with
+  | [] => acc
+  | s::ss =>
+    if h : visited.1.indexOf? s.1 != none then
+      pre_aux lts visited ss acc
+    else
+      have hx : (s.1 :: visited.1) <+~ lts.states := by
+        refine List.cons_subperm_of_not_mem_of_mem ?_ s.2 visited.2
+        rw [Bool.not_eq_true, bne_eq_false_iff_eq] at h
+        exact List.not_mem_of_indexOf?_eq_none _ _ h
+      have : lts.states.length - (visited.1.length + 1) < lts.states.length - visited.1.length := by
+        refine Nat.sub_add_lt_sub ?_ Nat.zero_lt_one
+        simpa using hx.length_le
+      pre_aux lts ⟨s::visited, hx⟩
+        ((lts.actions.foldl (fun acc a => acc ++ pre s a) []) ++ ss)
+        ((lts.actions.foldl (fun acc a => acc ++ (pre s a).map Subtype.val) []) ++ acc)
+termination_by (lts.states.length - visited.1.length, to_visit.length)
+
+def pre_star {lts : LTS} (final_states : List { s : State // s ∈ lts.states }) : List State :=
+  pre_aux lts ⟨[], nil_subperm⟩ final_states []
