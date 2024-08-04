@@ -3,14 +3,14 @@ import LeanCCS.Utils
 
 open List
 
-def post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
+protected def LTS.post {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
   lts.transition s a
 
 def post_S {lts : LTS} (states : List { s : State // s ∈ lts.states }) (a : Action) : List { s : State // s ∈ lts.states } :=
-  states.foldl (fun acc state => acc ++ post state a) []
+  states.foldl (fun acc state => acc ++ lts.post state a) []
 
 def post_A {lts : LTS} (s : { s : State // s ∈ lts.states }) (actions : List Action) : List { s : State // s ∈ lts.states } :=
-  actions.foldl (fun acc act => acc ++ post s act) []
+  actions.foldl (fun acc act => acc ++ lts.post s act) []
 
 def post_S_A {lts : LTS} (states : List { s : State // s ∈ lts.states }) (actions : List Action) : List { s : State // s ∈ lts.states } :=
   actions.foldl (fun acc act => acc ++ post_S states act) []

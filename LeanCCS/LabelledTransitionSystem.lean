@@ -20,4 +20,4 @@ structure LTS where
   s0 : State
 
 def map_lts_statesList (lts : LTS) : List { s : State // s ∈ lts.states } :=
-  lts.states.filterMap fun s => if h : s ∈ lts.states then some ⟨s, h⟩ else none
+  lts.states.filterMap fun s ↦ if h : s ∈ lts.states then some ⟨s, h⟩ else none
