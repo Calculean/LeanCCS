@@ -157,5 +157,6 @@ def lts_example : LTS :=
 
 variable {lts_example}
 
-example : post (State.mk "BURNING") (Action.mk "strike") =
-          [State.mk "BURNING"] := sorry
+
+example : post ⟨State.mk "BURNING", by sorry⟩ (Action.mk "extinguish") =
+          [⟨State.mk "EXTINCT", by sorry]

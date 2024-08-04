@@ -51,4 +51,12 @@ def exampleLTS : LTS where
 
 
 -- Proof that S1 is in the states list
-theorem s1_in_states : { val := "S1" } ∈ exampleLTS.states := by simp [exampleLTS]
+theorem s1_in_states :
+  { val := "S1" } ∈ exampleLTS.states := by simp [exampleLTS]
+
+-- Proof that S1 is in the states list
+theorem a_in_actions :
+  { val := "a" } ∈ exampleLTS.actions := by simp [exampleLTS]
+
+-- Example usage of the post function
+#eval (post exampleLTS.s0 ⟨{ val := "a" }, a_in_actions⟩).map (fun s => s.val.val)
