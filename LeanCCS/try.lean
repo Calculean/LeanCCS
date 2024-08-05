@@ -144,11 +144,39 @@ theorem post_S_n_zero {lts : LTS}
   post_S_n states actions 0 = states := by
   rfl  -- reflexivity is enough because this is true by definition
 
--- Theorem: Post_S_n (n+1) = Post_S_A (Post_S_n n)
-theorem post_S_n_succ_eq_post_S_A_post_S_n {lts : LTS}
+theorem post_S_n_plus_one_eq_postA_post_S_n {lts : LTS}
+  (states : List { s : State // s ∈ lts.states })
+  (actions : List { a : Action // a ∈ lts.actions }) :
+  post_S_n states actions (n + 1) = post_S_A (post_S_n states actions n) actions := by
+  simp
+  rfl
+
+
+theorem post_S_n_succ_eq_post_S_n_post_S_n {lts : LTS}
   (states : List { s : State // s ∈ lts.states })
   (actions : List { a : Action // a ∈ lts.actions })
   (n : Nat) :
   post_S_n states actions (n + 1) = post_S_n (post_S_n states actions n) actions 1 := by
-  induction n generalizing states
-  simp
+  induction n with
+  | zero =>
+    simp
+    rw [post_S_n_zero]
+  | succ n IH =>
+    rw [post_S_n_plus_one_eq_postA_post_S_n]
+
+
+
+
+
+
+
+-- Theorem: Post_S_n (n+1) = Post_S_A (Post_S_n n)
+--theorem post_S_n_succ_eq_post_S_n_post_S_n_2 {lts : LTS}
+  --(states : List { s : State // s ∈ lts.states })
+  --(actions : List { a : Action // a ∈ lts.actions })
+  --(n : Nat) :
+  --post_S_n states actions (n + 1) = post_S_n (post_S_n states actions n) actions 1 := by
+  --induction n generalizing states
+  --simp
+  --rw [post_S_n_zero]
+  --rw [post_S_n_plus_one_eq_postA_post_S_n]
