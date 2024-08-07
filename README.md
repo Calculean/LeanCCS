@@ -15,7 +15,7 @@ The primary goal of this project is to formalize the following:
 
 ## Contributing
 
-We welcome contributions to this project. If you have suggestions or improvements, please open an issue or submit a pull request. Contributions should adhere to the following guidelines. The project is maintained by Bashar Hamade and Rida Hamadani, feel free to reach out to us over the [LEAN Zulip](https://leanprover.zulipchat.com/).
+We welcome contributions to this project. If you have suggestions or improvements, please open an issue or submit a pull request. The project is maintained by Bashar Hamade and Rida Hamadani, feel free to reach out to us over the [LEAN Zulip](https://leanprover.zulipchat.com/).
 
 ## Acknowledgements
 
