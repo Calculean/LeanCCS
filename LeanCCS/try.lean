@@ -291,9 +291,61 @@ def example_target_states : List { s : State // s ∈ exampleLTS.states } := [
 #eval (pre_star [⟨{ val := "S2" }, s2_in_states⟩]).map (fun s => s.val)
 
 
+-- Add the new theorem
+theorem reach_iff_exists_post_S_n {lts : LTS}
+(initial_states : List { s : State // s ∈ lts.states })
+(s : State) :
+s ∈ reach initial_states →
+∃ n : Nat, s ∈ (post_S_n initial_states (map_lts_actionsList lts) n).map Subtype.val := by
+intro h_reach
+unfold post_S_n
+
+-- The proof goes here
+sorry  -- For now, we use sorry as a placeholder for the actual proof
+
 -- Main theorem
 theorem reach_iff_pre_star {lts : LTS}
   (s : { s : State // s ∈ lts.states })
   (s' : { s : State // s ∈ lts.states }) :
   s'.val ∈ reach [s] ↔ s.val ∈ pre_star [s'] := by
   sorry
+
+theorem post_n_plus_1_equiv_post_n_post {lts : LTS} (s : { s : State // s ∈ lts.states }) (n : Nat) :
+  ∀ s', s' ∈ (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val ↔
+    ∃ s'', s'' ∈ (post_S_n [s] (map_lts_actionsList lts) n).map Subtype.val ∧
+           s' ∈ (post_S_A [⟨s'', by sorry⟩] (map_lts_actionsList lts)).map Subtype.val := by
+  intro s'
+  apply Iff.intro
+  intro h_post_n_plus_1
+    -- Forward direction proof
+  have h_eq : post_S_n [s] (map_lts_actionsList lts) (n + 1) =
+                post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts) := by
+    rw [post_S_n_succ_eq_post_S_n_post_S_n]
+    rfl
+  unfold post_S_n at h_post_n_plus_1
+
+
+
+
+
+theorem post_pre_equivalence_precise {lts : LTS}
+  (s : { s : State // s ∈ lts.states })
+  (s' : { s : State // s ∈ lts.states })
+  (n : Nat) :
+  s'.val ∈ (post_S_n [s] (map_lts_actionsList lts) n).map Subtype.val ↔
+  s.val ∈ pre_S_n lts [s'.val] (map_lts_actionsList lts) n := by
+  induction n with
+  | zero =>
+    -- Base case: n = 0
+    simp [post_S_n, pre_S_n]
+    apply Iff.intro
+    intro h
+    rw [h]
+
+    intro h
+    rw [h]
+  | succ n ih =>
+    rw [post_S_n_succ_eq_post_S_n_post_S_n]
+    apply Iff.intro
+    intro h
+    simp [post_S_n] at h
