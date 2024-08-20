@@ -1,5 +1,6 @@
 import Batteries.Data.List.Perm
 import Mathlib.Tactic.NthRewrite
+import Lean.Elab.Tactic
 
 open List
 
@@ -167,6 +168,9 @@ theorem List.not_mem_of_indexOf?_eq_none [BEq α] [LawfulBEq α] (l : List α) (
 def map_lts_actionsList (lts : LTS) : List { a : Action // a ∈ lts.actions } :=
   lts.actions.filterMap fun a ↦ if h : a ∈ lts.actions then some ⟨a, h⟩ else none
 
+
+
+
 def reach_aux (lts : LTS) (visited : { l : List State // l <+~ lts.states } )
 (to_visit : List { s : State // s ∈ lts.states }) (acc : List State): List State :=
   match to_visit with
@@ -291,6 +295,16 @@ def example_target_states : List { s : State // s ∈ exampleLTS.states } := [
 #eval (pre_star [⟨{ val := "S2" }, s2_in_states⟩]).map (fun s => s.val)
 
 
+theorem post_n_plus_one_eq_post_of_post_n {lts : LTS}
+  (s : { s : State // s ∈ lts.states })
+  (n : Nat) :
+  (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val =
+  (post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts)).map Subtype.val := by
+  -- Proof goes here
+  rfl
+
+
+
 -- Add the new theorem
 theorem reach_iff_exists_post_S_n {lts : LTS}
 (initial_states : List { s : State // s ∈ lts.states })
@@ -310,19 +324,42 @@ theorem reach_iff_pre_star {lts : LTS}
   s'.val ∈ reach [s] ↔ s.val ∈ pre_star [s'] := by
   sorry
 
+
+
 theorem post_n_plus_1_equiv_post_n_post {lts : LTS} (s : { s : State // s ∈ lts.states }) (n : Nat) :
   ∀ s', s' ∈ (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val ↔
     ∃ s'', s'' ∈ (post_S_n [s] (map_lts_actionsList lts) n).map Subtype.val ∧
            s' ∈ (post_S_A [⟨s'', by sorry⟩] (map_lts_actionsList lts)).map Subtype.val := by
   intro s'
   apply Iff.intro
+  -- Forward direction
   intro h_post_n_plus_1
-    -- Forward direction proof
-  have h_eq : post_S_n [s] (map_lts_actionsList lts) (n + 1) =
-                post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts) := by
-    rw [post_S_n_succ_eq_post_S_n_post_S_n]
-    rfl
-  unfold post_S_n at h_post_n_plus_1
+  have h_eq : (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val =
+              (post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts)).map Subtype.val := by
+    apply post_n_plus_one_eq_post_of_post_n
+
+  rw [h_eq] at h_post_n_plus_1
+  sorry
+
+-- Backward direction
+
+  intro h_exists
+  cases h_exists with
+  | intro s'' h_and =>
+      cases h_and with
+      | intro h_s''_in_post_n h_s'_in_post_s'' =>
+        have h_eq : (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val =
+                    (post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts)).map Subtype.val := by
+          apply post_n_plus_one_eq_post_of_post_n
+        rw [h_eq]
+        apply List.mem_map.2
+        sorry
+
+
+
+
+
+
 
 
 
@@ -349,3 +386,76 @@ theorem post_pre_equivalence_precise {lts : LTS}
     apply Iff.intro
     intro h
     simp [post_S_n] at h
+    sorry
+
+
+-- Define the syntax of CCS0
+inductive CCS0 : Type
+| null : CCS0
+| choice : CCS0 → CCS0 → CCS0
+| prefix : Action → CCS0 → CCS0
+
+-- Notation to make writing CCS0 expressions easier
+notation "nil" => CCS0.null
+infixr:65 "+" => CCS0.choice
+notation:max α:max "." P:max => CCS0.prefix α P
+
+-- Helper function to create actions easily
+def act (s : String) : Action := Action.mk s
+
+-- Examples from the image
+def firecracker : CCS0 :=
+  (Action.mk ("light")) . (Action.mk "bang") . nil
+
+def defective_firecracker : CCS0 :=
+  (Action.mk "light") . (Action.mk "τ") . nil
+
+def possibly_defective_firecracker : CCS0 :=
+  CCS0.prefix (act "light")
+    (CCS0.choice
+      (CCS0.prefix (act "τ") CCS0.null)
+      (CCS0.prefix (act "bang") CCS0.null))
+
+-- Function to print CCS0 expressions (for demonstration)
+def CCS0.toString : CCS0 → String
+  | CCS0.null => "0"
+  | CCS0.choice p q => s!"({p.toString} + {q.toString})"
+  | CCS0.prefix a p => s!"{a.val}.{p.toString}"
+
+-- Define the transition relation for CCS0
+inductive step : CCS0 → Action → CCS0 → Prop
+| choice_l : ∀ P P' Q, step P α P' → step (CCS0.choice P Q) α P'
+| choice_r : ∀ P Q Q', step Q α Q' → step (CCS0.choice P Q) α Q'
+| prefix_inf   : ∀ α P P', step (CCS0.prefix α P) α P'
+
+#eval firecracker.toString
+#eval defective_firecracker.toString
+#eval possibly_defective_firecracker.toString
+#eval ((CCS0.prefix (Action.mk "a") CCS0.null + CCS0.null) + (CCS0.prefix (act "b") (CCS0.null + CCS0.null))).toString
+-- Define the CCS0 expression
+
+-- Prove the semantics using the step relation
+theorem example_step_proof :
+  step (CCS0.prefix (act "a") CCS0.null) (act "a") CCS0.null := by
+
+  -- with prefix
+  apply step.prefix_inf
+
+
+
+
+theorem example_choice_l_proof (h : step (CCS0.prefix (act "a") CCS0.null) (act "a") CCS0.null) :
+  step ((CCS0.prefix (act "a") CCS0.null + CCS0.null)) (act "a") CCS0.null := by
+
+  -- with choice_l
+  apply step.choice_l
+  exact h
+
+theorem example_choice_l_2_proof :
+  step ((CCS0.prefix (act "a") CCS0.null + CCS0.null) + (CCS0.prefix (act "b") (CCS0.null + CCS0.null))) (act "a") CCS0.null := by
+
+  apply step.choice_l
+  -- Apply the previous proof
+  apply example_choice_l_proof
+  -- Transitioning from a.0 to 0 (with prefix)
+  apply example_step_proof
