@@ -1,7 +1,7 @@
-import LeanCCS.pre
+
+import LeanCCS.LabelledTransitionSystem
 import LeanCCS.Post
-
-
+import LeanCCS.Pre
 -- Define the LTS
 def exampleLTS : LTS where
   states := [

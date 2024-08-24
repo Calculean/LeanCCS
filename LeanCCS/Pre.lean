@@ -3,10 +3,6 @@ import LeanCCS.Utils
 
 open List
 
-local instance instBEqSubtype {α : Type _} [BEq α] (P: α → Prop) : BEq (Subtype P) where
-  beq a b := a.val == b.val
-
-local instance {lts : LTS} : BEq { s : State // s ∈ lts.states } := instBEqSubtype _
 
 -- Pre function
 def pre {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : { a : Action // a ∈ lts.actions }) : List { s : State // s ∈ lts.states } :=

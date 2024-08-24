@@ -1,5 +1,8 @@
-import LeanCCS.pre
-import LeanCCS.Post
+import Batteries.Data.List.Perm
+import Mathlib.Tactic.NthRewrite
+import Lean.Elab.Tactic
+
+open List
 
 @[ext]
 structure State where
@@ -31,32 +34,47 @@ structure LTS where
   transition : { s : State // s ∈ states } → { a : Action // a ∈ actions } → List { s : State // s ∈ states }
   s0 : { s : State // s ∈ states }
 
-def map_lts_statesList (lts : LTS) : List { s : State // s ∈ lts.states } :=
-  lts.states.filterMap fun s ↦ if h : s ∈ lts.states then some ⟨s, h⟩ else none
+-- BEq instance for subtypes
+instance instBEqSubtype {α : Type _} [BEq α] (P : α → Prop) : BEq (Subtype P) where
+  beq a b := a.val == b.val
 
-def map_lts_actionsList (lts : LTS) : List { a : Action // a ∈ lts.actions } :=
-  lts.actions.filterMap fun a ↦ if h : a ∈ lts.actions then some ⟨a, h⟩ else none
+-- BEq instance for states in LTS
+instance {lts : LTS} : BEq { s : State // s ∈ lts.states } := instBEqSubtype _
+
+-- Define the LTS
+def exampleLTS : LTS where
+  states := [
+    { val := "S1" },
+    { val := "S2" },
+    { val := "S3" }
+  ]
+  actions := [
+    { val := "a" },
+    { val := "b" },
+    { val := "c" }
+  ]
+  transition := fun s a =>
+    match s.val.val, a.val.val with
+    | "S1", "a" => [⟨{ val := "S2" }, by simp⟩]
+    | "S1", "b" => [⟨{ val := "S3" }, by simp ⟩]
+    | "S2", "b" => [⟨{ val := "S1" }, by simp⟩, ⟨{ val := "S3" }, by simp⟩]
+    | "S2", "c" => [⟨{ val := "S3" }, by simp⟩]
+    | "S3", "a" => [⟨{ val := "S1" }, by simp ⟩]
+    | "S3", "c" => [⟨{ val := "S2" }, by simp⟩]
+    | _, _ => []
+  s0 := ⟨{ val := "S1" }, by simp⟩
 
 
--- major helper theorem
-theorem post_n_plus_1_equiv_post_n_post {lts : LTS} (s : { s : State // s ∈ lts.states }) (n : Nat) :
-  ∀ s', s' ∈ (post_S_n [s] (map_lts_actionsList lts) (n + 1)).map Subtype.val ↔
-    ∃ s'', s'' ∈ (post_S_n [s] (map_lts_actionsList lts) n).map Subtype.val ∧
-           s' ∈ (post_S_A [⟨s'', by sorry⟩] (map_lts_actionsList lts)).map Subtype.val := by
-  intro s'
-  apply Iff.intro
-  intro h_post_n_plus_1
-    -- Forward direction proof
-  have h_eq : post_S_n [s] (map_lts_actionsList lts) (n + 1) =
-                post_S_A (post_S_n [s] (map_lts_actionsList lts) n) (map_lts_actionsList lts) := by
-    rw [post_S_n_succ_eq_post_S_n_post_S_n]
-    rfl
-  unfold post_S_n at h_post_n_plus_1
-  sorry
+-- Proof that S1 is in the states list
+theorem s1_in_states :
+  { val := "S1" } ∈ exampleLTS.states := by simp [exampleLTS]
 
--- Main theorem
-theorem reach_iff_pre_star {lts : LTS}
-  (s : { s : State // s ∈ lts.states })
-  (s' : { s : State // s ∈ lts.states }) :
-  s'.val ∈ reach [s] ↔ s.val ∈ pre_star [s'] := by
-  sorry
+-- Proof that S2 is in the states list
+theorem s2_in_states :
+  { val := "S2" } ∈ exampleLTS.states := by simp [exampleLTS]
+
+-- Proof that S1 is in the states list
+theorem a_in_actions :
+  { val := "a" } ∈ exampleLTS.actions := by simp [exampleLTS]
+theorem b_in_actions :
+  { val := "b" } ∈ exampleLTS.actions := by simp [exampleLTS]

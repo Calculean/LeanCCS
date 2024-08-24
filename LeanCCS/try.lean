@@ -304,7 +304,7 @@ theorem post_n_plus_one_eq_post_of_post_n {lts : LTS}
   rfl
 
 
-
+/-
 -- Add the new theorem
 theorem reach_iff_exists_post_S_n {lts : LTS}
 (initial_states : List { s : State // s ∈ lts.states })
@@ -388,6 +388,8 @@ theorem post_pre_equivalence_precise {lts : LTS}
     simp [post_S_n] at h
     sorry
 
+-/
+
 
 -- Define the syntax of CCS0
 inductive CCS0 : Type
@@ -432,7 +434,8 @@ inductive step : CCS0 → Action → CCS0 → Prop
 #eval defective_firecracker.toString
 #eval possibly_defective_firecracker.toString
 #eval ((CCS0.prefix (Action.mk "a") CCS0.null + CCS0.null) + (CCS0.prefix (act "b") (CCS0.null + CCS0.null))).toString
--- Define the CCS0 expression
+
+
 
 -- Prove the semantics using the step relation
 theorem example_step_proof :
