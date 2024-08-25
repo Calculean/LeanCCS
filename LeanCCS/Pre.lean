@@ -1,5 +1,6 @@
 import LeanCCS.LabelledTransitionSystem
 import LeanCCS.Utils
+import LeanCCS.Post
 
 open List
 
@@ -60,3 +61,21 @@ termination_by (lts.states.length - visited.1.length, to_visit.length)
 
 def pre_star {lts : LTS} (initial_states : List { s : State // s ∈ lts.states }) : List State :=
   pre_star_aux lts ⟨[], nil_subperm⟩ initial_states []
+
+
+
+/--Proof that if s' belongs to the successor states of s,then s belongs to the predecessor states of s'--/
+theorem post_pre_equivalence_precise_zero {lts : LTS}
+  (s : { s : State // s ∈ lts.states })
+  (s' : { s : State // s ∈ lts.states })
+   :
+  s'.val ∈ (post_S_n [s] (map_lts_actionsList lts) 0).map Subtype.val ↔
+  s.val ∈ pre_S_n lts [s'.val] (map_lts_actionsList lts) 0 := by
+
+  simp [post_S_n, pre_S_n]
+  apply Iff.intro
+  intro h
+  rw [h]
+
+  intro h
+  rw [h]
