@@ -4,7 +4,7 @@ import LeanCCS.Utils
 open List
 
 
--- Pre function
+/-- Predecessor definitions from Exercise EA.3 (Exercise Sheet A)-/
 def pre {lts : LTS} (s : { s : State // s ∈ lts.states }) (a : { a : Action // a ∈ lts.actions }) : List { s : State // s ∈ lts.states } :=
   List.filter (fun st => (lts.transition st a).indexOf? s != none) (map_lts_statesList lts)
 

@@ -1,8 +1,4 @@
 import Batteries.Data.List.Perm
-import Mathlib.Tactic.NthRewrite
-import Lean.Elab.Tactic
-
-open List
 
 @[ext]
 structure State where
@@ -28,20 +24,21 @@ instance : LawfulBEq Action where
   rfl := by simp [Action.beq_iff]
   eq_of_beq h := Action.ext _ _ (Action.beq_iff.1 h)
 
+/-- Labelled transition systems definition as defined in Lecture A1 -/
 structure LTS where
   states : List State
   actions : List Action
   transition : { s : State // s ∈ states } → { a : Action // a ∈ actions } → List { s : State // s ∈ states }
   s0 : { s : State // s ∈ states }
 
--- BEq instance for subtypes
+/-- BEq instance for subtypes -/
 instance instBEqSubtype {α : Type _} [BEq α] (P : α → Prop) : BEq (Subtype P) where
   beq a b := a.val == b.val
 
--- BEq instance for states in LTS
+/-- BEq instance for states in LTS -/
 instance {lts : LTS} : BEq { s : State // s ∈ lts.states } := instBEqSubtype _
 
--- Define the LTS
+/-- Define an example LTS with 3 states and 3 actions-/
 def exampleLTS : LTS where
   states := [
     { val := "S1" },
@@ -53,6 +50,7 @@ def exampleLTS : LTS where
     { val := "b" },
     { val := "c" }
   ]
+
   transition := fun s a =>
     match s.val.val, a.val.val with
     | "S1", "a" => [⟨{ val := "S2" }, by simp⟩]
@@ -65,16 +63,19 @@ def exampleLTS : LTS where
   s0 := ⟨{ val := "S1" }, by simp⟩
 
 
--- Proof that S1 is in the states list
+
+/-- Proof that S1 is in the states list -/
 theorem s1_in_states :
   { val := "S1" } ∈ exampleLTS.states := by simp [exampleLTS]
 
--- Proof that S2 is in the states list
+/-- Proof that S2 is in the states list -/
 theorem s2_in_states :
   { val := "S2" } ∈ exampleLTS.states := by simp [exampleLTS]
 
--- Proof that S1 is in the states list
+/-- Proof that a is in the actions list -/
 theorem a_in_actions :
   { val := "a" } ∈ exampleLTS.actions := by simp [exampleLTS]
+
+/-- Proof that b is in the actions list -/
 theorem b_in_actions :
   { val := "b" } ∈ exampleLTS.actions := by simp [exampleLTS]

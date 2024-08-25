@@ -1,6 +1,4 @@
 import LeanCCS.LabelledTransitionSystem
-import Batteries.Data.List.Perm
-
 
 theorem List.not_mem_of_indexOf?_eq_none [BEq α] [LawfulBEq α] (l : List α) (a : α)
     (ha : l.indexOf? a = none) : a ∉ l := by
@@ -16,10 +14,9 @@ theorem List.not_mem_of_indexOf?_eq_none [BEq α] [LawfulBEq α] (l : List α) (
       rintro rfl
       exact h LawfulBEq.rfl
 
-
 def map_lts_actionsList (lts : LTS) : List { a : Action // a ∈ lts.actions } :=
   lts.actions.filterMap fun a ↦ if h : a ∈ lts.actions then some ⟨a, h⟩ else none
 
--- Assuming this function is already defined in your code
+
 def map_lts_statesList (lts : LTS) : List { s : State // s ∈ lts.states } :=
   lts.states.filterMap fun s ↦ if h : s ∈ lts.states then some ⟨s, h⟩ else none
